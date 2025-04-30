@@ -1,4 +1,4 @@
-# DataTalker for India Data Portal
+# DataTalker
 DataTalker is an intelligent, conversational agent designed to make data portals more accessible and useful through natural language interaction. Instead of navigating complex dashboards or filtering data through form-based interfaces, users can simply “talk” to DataTalker — describing what they’re looking for, asking questions, and iteratively refining their exploration.
 
 While it integrates tightly with Open Government Data (OGP) Platform and India Data Portal (IDP), DataTalker is conceived as a standalone interface layer — capable of exposing existing features (like dataset discovery, filtering, and visualization) and introducing powerful new capabilities that are unique to the chatbot, such as data-driven research report generation, conversational summaries, and location-based comparisons.
