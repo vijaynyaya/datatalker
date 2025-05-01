@@ -62,7 +62,7 @@ demo = gr.ChatInterface(
     type="messages",
     title="Data📅Talker🗣️",
     description="Conversational AI for Data Portals",
-    theme="ocean",
+    theme="origin",
     examples=[
         "What's the trend of fertilizer utilization in Punjab broken down by fertilizer type (N, P, K)?",
         "Find data related to agricultural productivity in Punjab.",

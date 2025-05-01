@@ -75,5 +75,38 @@ class OGDProxy:
         params["limit"] = limit
         return self._make_request(url, params=params)
     
+    def resources(self, offset = 0, limit = 10, params = dict()):
+        """Fetch resources"""
+        url = self.api_url + "/lists"
+        params["format"] = "json"
+        params["offset"] = offset
+        params["limit"] = limit
+        return self._make_request(url, params=params).json()
+
+    
+    def resources_by_catalog_nid(self, catalog_nid: int, offset = 0, limit = 10, params=dict()):
+        """Fetch resources belonging to a catalog using catalog nid"""
+        url = self.backend_url + "/dmspublic/v1/resources"
+        params["filters[catalog_reference]"] = catalog_nid
+        params["offset"] = offset
+        params["limit"] = limit
+        return self._make_request(url, params=params)
+    
+    def get_all_resources_by_catalog_nid(self, catalog_nid: int, batch_size=100,  params=dict()):
+        """Fetch all resources belonging to a catalog using catalog nid"""
+        # get the total number of resources
+        initial_resp = self.resources_by_catalog(catalog_nid, limit=1)
+        total_records = initial_resp["total"]
+
+        args = [
+            (catalog_nid, i, batch_size, params)
+            for i in range(0, total_records, batch_size)
+        ]
+
+        with Pool(cpu_count()) as pool:
+            responses = pool.starmap(self.resources_by_catalog, args)
+        
+        return responses
+    
     def prep_filtering_params(self, filters=dict()):
         pass
