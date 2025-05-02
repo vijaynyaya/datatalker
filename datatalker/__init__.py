@@ -1,5 +1,4 @@
-from datatalker.router import Router
-import streamlit as st
+from datatalker.routes import router
 
 
 class Context:
@@ -15,11 +14,11 @@ class Context:
 
 
 class DataTalker:
-    def __init__(self, router: Router):
+    def __init__(self):
         self.router = router
         self.context = Context(dict())
         self.context.set("resources", [])
-        self.logger = st.write
+        self.logger = print
     
-    def respond(self, message: str):
+    def respond(self, message: str, history):
         return self.router.dispatch(message, context=self.context, logger=self.logger)

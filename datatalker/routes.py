@@ -1,6 +1,6 @@
 # %%
 from datatalker.router import Router
-from datatalker.resources import get_relevant_resources, rework_resource_doc, resource_view
+from datatalker.resources import get_relevant_resources, adapt_ogdp_catalog_doc, resource_view
 
 # %%
 router = Router(confidence_threshold=0.6)
@@ -19,7 +19,7 @@ def handle_dataset_discovery(message, *args, **kwargs):
     resources = context.get("resources")
     while doc is not None:
         # update context
-        resource = rework_resource_doc(doc)
+        resource = adapt_ogdp_catalog_doc(doc)
         resources.append(resource)
         # 
         response = resource_view(resource)

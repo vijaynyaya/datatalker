@@ -1,15 +1,24 @@
 import gradio as gr
 from gradio import ChatMessage
-import random 
+from datatalker import DataTalker
+import dspy
 import time
 
-def random_resp(message, history):
-    return random.choice(["yo", "aha"])
+if not dspy.settings.get("lm"):
+    lm = dspy.LM(model="ollama_chat/gemma3", api_base="http://localhost:11434")
+    dspy.configure(lm=lm)
 
-def slow_echo(message, history):
-    for i in range(len(message)):
-        time.sleep(0.3)
-        yield message[: i+1]
+talker = DataTalker()
+
+def handle_message(message, history):
+    resp = talker.respond(message, history)
+    messages = list()
+    while True:
+        gen = next(resp, None)
+        if gen is None:
+            break
+        messages.append(ChatMessage(content=gen))
+        yield messages
 
 def suggest_datasets(message, history):
     response = ChatMessage(
@@ -56,9 +65,8 @@ def suggest_datasets(message, history):
     yield response
 
 
-
 demo = gr.ChatInterface(
-    fn=suggest_datasets,
+    fn=handle_message,
     type="messages",
     title="Data📅Talker🗣️",
     description="Conversational AI for Data Portals",
@@ -68,7 +76,7 @@ demo = gr.ChatInterface(
         "Find data related to agricultural productivity in Punjab.",
         "What's the average paddy yield in Sangrur district for the last five years?",
     ],
-    save_history=True,
+    # save_history=True,
     flagging_mode="manual",
     flagging_options=["Like", "Not good enough"]
     # cache_examples=True,

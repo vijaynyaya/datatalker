@@ -5,6 +5,7 @@ from tenacity import (
     wait_exponential,
     retry_if_exception_type
 )
+from typing import Any
 from multiprocessing import Pool, cpu_count
 from typing import Literal
 
@@ -110,3 +111,38 @@ class OGDProxy:
     
     def prep_filtering_params(self, filters=dict()):
         pass
+
+
+class DocumentAdapter:
+
+    @staticmethod
+    def embed_catalog_content(catalog: dict[str, Any]):
+        ctlg_keys = catalog.keys()
+        parts = [
+            f"Title: {catalog.get('title', ['Unknown'])[0]}",
+            f"Description: {catalog.get('body:value', [''])[0]}",
+            f"Keywords: {catalog.get('keywords')}",
+            f"Frequency: {catalog.get('frequency', ['Unknown'])[0]}",
+            f"Data Source: {catalog.get('')}",
+            f"Open Government Data Site: {catalog.get('ogpl_module_domain_name')}"
+            f"Government Type: {catalog.get('govt_type')}",
+        ]
+        for key in ctlg_keys:
+            if key.startswith("field"):
+                fmt_key = key.replace(r"_", " ").replace(":", " ").removeprefix("field ").title()
+                line = f"{fmt_key}: {catalog[key]}"
+                parts.append(line)
+        return "\n".join(parts)
+
+    @staticmethod
+    def from_catalog(catalog: dict[str, Any]):
+        return dict(
+            type="dataset",
+            website=f"https://data.gov.in{catalog.get('node_alias')[0]}",
+            interface="ogd:catalog",
+            title=catalog.get("title", ["Unkown Title"])[0],
+            content=DocumentAdapter.embed_catalog_content(catalog),
+            uuid=catalog["uuid"][0],
+            nid=catalog["nid"][0],
+            vid=catalog["vid"][0]
+        )
