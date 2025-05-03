@@ -5,32 +5,31 @@ import dspy
 TOPK_DOCS_TO_RETRIEVE = 20
 RETRIEVER = get_retriever()
 
-class DatasetGrader(dspy.Module):
+class RelevanceJudge(dspy.Module):
     def __init__(self):
         signature = dspy.Signature(
-            "dataset_description: str, query: str -> is_relevant: bool, how: str",
-            "Assess whether the dataset is relevant to the query, and covers the intended geography and time period",
+            "document: str, query: str -> is_relevant: bool, how: str",
+            "Assess whether the document is relevant to the query, and covers the intended geography, time period, and use case.",
         )       
-        self.grader = dspy.ChainOfThought(signature)
+        self.judge = dspy.ChainOfThought(signature)
     
-    def forward(self, doc: str, query: str) -> bool:
-        return self.grader(dataset_description=doc, query=query)
+    def forward(self, document: str, query: str) -> bool:
+        return self.judge(document=document, query=query)
 
 class ResourceRetriever(dspy.Module):
-    def __init__(self, retriever: ChromadbRM):
-        self.retriever = retriever
-        self.grader = DatasetGrader()
+    def __init__(self, retriever: ChromadbRM, num_hops = 4):
+        self.retriever, self.num_hops = retriever, num_hops
+        self.judge_relevance = RelevanceJudge()
 
     def forward(self, query: str, k: int = TOPK_DOCS_TO_RETRIEVE):
         docs = self.retriever(query, k=k)
         print(f"Found {len(docs)} similar documents in the vectorstore")
         for doc in docs:
-            with dspy.context(lm=dspy.LM("ollama_chat/llama3.2", api_base="http://localhost:11434")):
-                grade = self.grader(doc.long_text, query)
-                print(f"IsRelevant({grade.is_relevant}) {doc['metadatas']['title']}")
-                if grade.is_relevant:
-                    doc["relevance_rationale"] = grade.how
-                    yield doc
+            grade = self.judge_relevance(document=doc.long_text, query=query)
+            print(f"IsRelevant({grade.is_relevant}) {doc['metadatas']['title']}")
+            if grade.is_relevant:
+                doc["relevance_rationale"] = grade.how
+                yield doc
 
 def get_relevant_resources(query: str, k: int = TOPK_DOCS_TO_RETRIEVE):
     """
