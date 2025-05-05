@@ -10,9 +10,9 @@ readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
     "chromadb>=1.0.7",
-    "dspy>=2.6.21",
-    "gradio>=5.28.0",
+    "dspy>=2.6.22",
     "ipykernel>=6.29.5",
+    "ollama>=0.4.8",
     "requests>=2.32.3",
     "streamlit>=1.45.0",
     "tenacity>=9.1.2",
@@ -27,5 +27,6 @@ packages = ["datatalker"]
 
 [dependency-groups]
 dev = [
+    "gradio>=5.29.0",
     "pymongo>=4.12.1",
 ]

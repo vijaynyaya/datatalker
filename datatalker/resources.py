@@ -2,47 +2,42 @@ from datatalker.vectorstore import get_retriever
 from dspy.retrieve.chromadb_rm import ChromadbRM
 import dspy
 
-TOPK_DOCS_TO_RETRIEVE = 20
-RETRIEVER = get_retriever()
+
+TOPK_DOCS_TO_RETRIEVE = 7
+RETRIEVER = get_retriever(collection_name="datasets_bge-m3")
+
 
 class RelevanceJudge(dspy.Module):
     def __init__(self):
         signature = dspy.Signature(
-            "document: str, query: str -> is_relevant: bool, how: str",
-            "Assess whether the document is relevant to the query, and covers the intended geography, time period, and use case.",
+            "dataset_description: str, query: str -> is_relevant: bool, how: str",
+            "Assess whether the dataset is relevant to the query.",
         )       
         self.judge = dspy.ChainOfThought(signature)
     
     def forward(self, document: str, query: str) -> bool:
-        return self.judge(document=document, query=query)
+        return self.judge(dataset_description=document, query=query)
 
 class ResourceRetriever(dspy.Module):
-    def __init__(self, retriever: ChromadbRM, num_hops = 4):
-        self.retriever, self.num_hops = retriever, num_hops
+    def __init__(self, retriever: ChromadbRM, log=print):
+        
+        self.retriever = retriever
         self.judge_relevance = RelevanceJudge()
+        self.log = log
 
     def forward(self, query: str, k: int = TOPK_DOCS_TO_RETRIEVE):
         docs = self.retriever(query, k=k)
-        print(f"Found {len(docs)} similar documents in the vectorstore")
+        self.log(f"Found {len(docs)} similar documents for query '{query}'")
         for doc in docs:
             grade = self.judge_relevance(document=doc.long_text, query=query)
-            print(f"IsRelevant({grade.is_relevant}) {doc['metadatas']['title']}")
+            self.log(f"Judged resource '{doc['metadatas']['title']}' as '{'relevant' if grade.is_relevant else 'irrelevant'}'")
             if grade.is_relevant:
                 doc["relevance_rationale"] = grade.how
                 yield doc
 
-def get_relevant_resources(query: str, k: int = TOPK_DOCS_TO_RETRIEVE):
-    """
-    Retrieve relevant resources based on the query.
-    
-    Args:
-        query: The search query string
-        k: Number of top documents to retrieve
-    
-    Returns:
-        List of relevant resources
-    """
-    res_retriever = ResourceRetriever(RETRIEVER)
+
+def get_relevant_resources(query: str, k: int = TOPK_DOCS_TO_RETRIEVE, retriever = RETRIEVER, log=print):
+    res_retriever = ResourceRetriever(retriever, log=log)
     docs = res_retriever(query, k=k)
     return docs
 

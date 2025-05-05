@@ -70,7 +70,7 @@ class OGDProxy:
     def catalog(self, catalog_uuid: str,  offset: int = 0, limit: int = 10, format: Literal["json", "csv"]="json", params=dict()):
         """Fetch catalog records using OGD API"""
         url = self.api_url + f"/catalog/{catalog_uuid}"
-        params["api_key"] = self.api_key
+        params["api-key"] = self.api_key
         params["format"] = format
         params["offset"] = offset
         params["limit"] = limit
@@ -123,7 +123,6 @@ class DocumentAdapter:
             f"Description: {catalog.get('body:value', [''])[0]}",
             f"Keywords: {catalog.get('keywords')}",
             f"Frequency: {catalog.get('frequency', ['Unknown'])[0]}",
-            f"Data Source: {catalog.get('')}",
             f"Open Government Data Site: {catalog.get('ogpl_module_domain_name')}"
             f"Government Type: {catalog.get('govt_type')}",
         ]
@@ -138,11 +137,12 @@ class DocumentAdapter:
     def from_catalog(catalog: dict[str, Any]):
         return dict(
             type="dataset",
-            website=f"https://data.gov.in{catalog.get('node_alias')[0]}",
+            url=f"https://data.gov.in{catalog.get('node_alias')[0]}",
             interface="ogd:catalog",
             title=catalog.get("title", ["Unkown Title"])[0],
             content=DocumentAdapter.embed_catalog_content(catalog),
             uuid=catalog["uuid"][0],
             nid=catalog["nid"][0],
-            vid=catalog["vid"][0]
+            vid=catalog["vid"][0],
+            is_api_available=catalog["is_api_available"][0] in {"1", 1}
         )

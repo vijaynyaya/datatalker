@@ -9,22 +9,24 @@ POLICY = [
     "Your role is to assist the user in discovering datasets"
     ", fetch datapoints or subsets of datasets to answer user queries"
     ", and to aid in data analysis and visualization.",
-    "You must never let the conversation stray away from your role."
-    "Your responses must be short, consice and to the point.",
+    "The conversation should always stay centered around your role as data assistant."
     "You can ask follow up questions from the user to clarify ambiquity.",
-    "It's okay to be sharp, harsh, and biased as long as you are self aware"
-    ", and can handle it with grace and virtue.",
+    "Your responses must be short, concise and to the point.",
+    # "It's okay to be sharp, harsh, and biased as long as you are self aware"
+    # ", and can handle it with grace and virtue.",
     "Provide the right amount of information, neither too much nor too little.",
-    "Be clear, brief, and orderly in your communication.",
+    # "Be clear, brief, and orderly in your communication.",
     "Strive to be truthful. Avoid making statements of fact that can't be "
     "grounded in conversation history.",
 ]
 
-def chat(message: str, history: list[dict], hint: str = "") -> str:
+def chat(message: str, history: list[dict], hint: str = "", log=print) -> str:
     """
-    Handles short, focused conversations. Useful for answering questions,
-    providing explanations, or interacting naturally. Ideal for confirming
-    intent, clarifying ambiguous queries, and providing help in plain language.
+    Handles general purpose interactions in the natural language.
+    Useful for answering questions or providing explanations based on the
+    context set by the ongoing conversation.
+    Ideal for confirming intent, clarifying ambiguous queries,
+    and providing help in plain language.
     """
     Chat = dspy.Signature(
         "history: list[dict], message: str -> response: str",
@@ -35,37 +37,96 @@ def chat(message: str, history: list[dict], hint: str = "") -> str:
     print("chat.reply.reasoning:", prediction.reasoning)
     return prediction.response    
 
+# generic formatter
+class MarkdownRenderer(dspy.Module):
+    def __init__(self, instructions: str, json_adapter = lambda x: x):
+        self.adapter = json_adapter
+        self.signature = dspy.Signature(
+            "json_object -> markdown",
+            instructions
+        )
+        self.renderer = dspy.ChainOfThought(self.signature)
+    
+    def forward(self, json):
+        json = self.adapter(json)
+        prediction = self.renderer(json_object=json)
+        print("markdownrenderer.renderer.reasoning", prediction.reasoning)
+        return prediction.markdown
+
+
 # resource handler
-def retrieve(message: str, history: list[dict]) -> str:
+NO_DATASETS_FOUND_MSG = "No relevant datasets found."
+def retrieve(message: str, history: list[dict], log=print):
     """
     Find relevant datasets based on a user query. Useful for locating
     data sources to support a user's question or analysis task.
     """
-
+    
     if len(history) == 0:
-        resources = get_relevant_resources(message)
-        return resources
-    
-    # craft a refined search query
-    FormulateQuery = dspy.Signature(
-        "message: str, history: list[dict] -> search_query: str",
-        "The search query will be used for retrieving relevant resources."
+        resources = get_relevant_resources(message, log=log)
+    else:    
+        # craft a refined search query
+        FormulateQuery = dspy.Signature(
+            "message: str, history: list[dict] -> search_query: str",
+            "The search query will be used for retrieving relevant resources."
+        )
+        query_generator = dspy.ChainOfThought(FormulateQuery)
+        prediction = query_generator(message=message, history=history)
+        print("retrieve.generate_query.reasoning:", prediction.reasoning)
+        resources = get_relevant_resources(prediction.search_query, log=log)
+
+    def simplify_resource_document(doc):
+        """Simplifies the resource doc for optimized markdown rendition."""
+        return dict(
+            title=doc["metadatas"]["title"],
+            url=doc["metadatas"]["url"],
+            long_text_description=doc['long_text'],
+        )
+
+    md_renderer = MarkdownRenderer(
+        instructions=(
+            "Render as a list item."
+            "Start with the title as a formatted link."
+            "Followed by a crispy short passage."
+            # "End with a horizontal line."
+        ),
+        json_adapter=simplify_resource_document
     )
-    query_generator = dspy.ChainOfThought(FormulateQuery)
-    prediction = query_generator(message=message, history=history)
-    print("retrieve.generate_query.reasoning:", prediction.reasoning)
-    resources = get_relevant_resources(prediction)
-    return resources
     
+    doc = next(resources, None)
+    if doc is None:
+        print("retriever: No relevant resources found.")
+        return NO_DATASETS_FOUND_MSG, None
+
+    while doc is not None:
+        markdown = md_renderer(json=doc)
+        yield markdown, doc
+        doc = next(resources, None)
+
 # data query handler
-def fetch_data(message: str, history: list[dict], resource: dict = None):
+class ChooseDataset(dspy.Signature):
+    datasets = dspy.InputField(desc="list of datasets to choose from")
+    user_message = dspy.InputField(desc="user message")
+    conversation_history = dspy.InputField()
+    id_of_selected_dataset: str = dspy.OutputField(desc="Id of the selected dataset")
+
+def fetch_data(message: str, history: list[dict], resources: dict = None):
     """
-    Downloads or pulls data associated with a specified resource. Use this
-    after identifying a relevant dataset to actually fetch the underlying data
-    for analysis or processing. It supports workflows where raw data access
-    is required following resource discovery.
+    Downloads or pulls data associated for datasets. Use this
+    to actually fetch the underlying data for analysis or processing. It
+    supports workflows where raw data access is required following dataset
+    discovery. Ideal when the user requests records or a datum.
     """
-    return "You've reached the cutting edge! This portion is still under construction 😅."
+    dataset_selector = dspy.ChainOfThought(ChooseDataset.with_instructions("Select a dataset."))
+    prediction = dataset_selector(
+        datasets=list(resources.values()),
+        user_message=message,
+        conversation_history=history,
+    )
+    print("fetch_data.dataset_selector.reasoning", prediction.reasoning)
+    rsrc = resources[prediction.id_of_selected_dataset]
+    msg = next(chat(message=message, history=[], hint=f"inform the user that the system has selected {rsrc}."))
+    yield msg
 
 # visualization handler
 def visualize(message: str, history: list[dict], data = None):
@@ -79,7 +140,7 @@ def visualize(message: str, history: list[dict], data = None):
 
 
 # handle handlers
-class ChooseHandler(dspy.Signature):
+class ChooseHandler(dspy.Signature):    
     list_of_handlers: list = dspy.InputField(desc="list of available hanlders")
     user_message = dspy.InputField(desc="a message from the user")
     conversation_history = dspy.InputField()
@@ -90,8 +151,7 @@ class DataTalker:
     def __init__(self):
         self.HANDLERS = dict()
         self.handler_docs: list[dict] = list()
-        self.notes: list[str] = list()
-        self.resources: list[dict] = list()
+        self.resources = dict()
         self.dataframes: list = list()
 
     def add_handler(self, name: str, func: Callable):
@@ -102,7 +162,9 @@ class DataTalker:
         ))
 
     def choose_handler(self, message: str, history: list) -> str:
-        classifier = dspy.ChainOfThought(ChooseHandler)
+        classifier = dspy.ChainOfThought(ChooseHandler \
+            .with_instructions("The selected handler must be from the provided list of handlers.")
+        )
         prediction = classifier(
             list_of_handlers = self.handler_docs,
             user_message = message,
@@ -110,11 +172,33 @@ class DataTalker:
         )
         print("datatalker.choose_handler.reasoning", prediction.reasoning)
         return prediction.selected_handler_name
+
+    def handle_retrieval(self, generator):
+        texts = list()
+        while True:
+            chunk = next(generator, None)
+            if chunk is None:
+                break
+            text, doc = chunk
+            # TODO: Multi-Hop Search
+            self.resources[doc['id']] = doc
+            texts.append(text)
+            yield text
+        yield chat(messge="", history=texts, hint="The system fetched datasets for the user query. Write a short follow up message.")
     
     def handle(self, message: str, history: list[dict]):
-        hanlder_name = self.choose_handler(message, history)
-        handler = self.HANDLERS[hanlder_name]
-        return handler(message, history)
+        handler_name = self.choose_handler(message, history)
+        handler = self.HANDLERS[handler_name]
+        if handler_name == "retrieve_datasets":
+            # tried_again = False
+            response = handler(message, history)
+            return self.handle_retrieval(response)
+        elif handler_name == "fetch_data":
+            response = handler(message, history, self.resources)
+            yield response
+        else:
+            yield "You seemed to have reached the cutting edge! I tripped over."
+
 
 
 talker = DataTalker()

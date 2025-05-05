@@ -550,8 +550,8 @@ source = { editable = "." }
 dependencies = [
     { name = "chromadb" },
     { name = "dspy" },
-    { name = "gradio" },
     { name = "ipykernel" },
+    { name = "ollama" },
     { name = "requests" },
     { name = "streamlit" },
     { name = "tenacity" },
@@ -559,22 +559,26 @@ dependencies = [
 
 [package.dev-dependencies]
 dev = [
+    { name = "gradio" },
     { name = "pymongo" },
 ]
 
 [package.metadata]
 requires-dist = [
     { name = "chromadb", specifier = ">=1.0.7" },
-    { name = "dspy", specifier = ">=2.6.21" },
-    { name = "gradio", specifier = ">=5.28.0" },
+    { name = "dspy", specifier = ">=2.6.22" },
     { name = "ipykernel", specifier = ">=6.29.5" },
+    { name = "ollama", specifier = ">=0.4.8" },
     { name = "requests", specifier = ">=2.32.3" },
     { name = "streamlit", specifier = ">=1.45.0" },
     { name = "tenacity", specifier = ">=9.1.2" },
 ]
 
 [package.metadata.requires-dev]
-dev = [{ name = "pymongo", specifier = ">=4.12.1" }]
+dev = [
+    { name = "gradio", specifier = ">=5.29.0" },
+    { name = "pymongo", specifier = ">=4.12.1" },
+]
 
 [[package]]
 name = "debugpy"
@@ -652,7 +656,7 @@ wheels = [
 
 [[package]]
 name = "dspy"
-version = "2.6.21"
+version = "2.6.22"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "anyio" },
@@ -678,9 +682,9 @@ dependencies = [
     { name = "tqdm" },
     { name = "ujson" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/e6/bb/ec528f54f47e973a468851325e3ce9b90f0506c4f5a2d402e732cc4bcad6/dspy-2.6.21.tar.gz", hash = "sha256:aad87b9819fa1553974d2ecbedf54e20565597e111e4b5d2b3908454cef1b00d", size = 213022 }
+sdist = { url = "https://files.pythonhosted.org/packages/05/81/a969e77c943e51414db3d65cb8340016f05b54c355109c1e67be33480418/dspy-2.6.22.tar.gz", hash = "sha256:debb411901636b3c2c31e75a323bf63769397c344485b0159ad7b6dcee832bd5", size = 213443 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/6d/5c/d4413641f17cf7cb84fa65a2419be23fac01f41ca142545c71ce6aab5d63/dspy-2.6.21-py3-none-any.whl", hash = "sha256:5b9ed662f6cc57c1ff7c1df69d60d42db9734b883d6774eb450c378726369a8b", size = 270397 },
+    { url = "https://files.pythonhosted.org/packages/48/53/e15cd0bb67da416a29f1a661c5776d75c37acf5fd312bb770864f2238ea9/dspy-2.6.22-py3-none-any.whl", hash = "sha256:543128f854e538358bbb1b15eea2a32d3af17c93350f336cb22d26e19f613bff", size = 270752 },
 ]
 
 [[package]]
@@ -868,7 +872,7 @@ wheels = [
 
 [[package]]
 name = "gradio"
-version = "5.28.0"
+version = "5.29.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "aiofiles" },
@@ -901,9 +905,9 @@ dependencies = [
     { name = "urllib3", marker = "sys_platform == 'emscripten'" },
     { name = "uvicorn", marker = "sys_platform != 'emscripten'" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/5e/f8/80ac6338e1a654c5652c2934c532425fd05fc02f077a2fd2061bece1e6dc/gradio-5.28.0.tar.gz", hash = "sha256:31f259f35beba6b58ef0b942d44891f9f8e05e466778cb1c830b75fe75ac5b65", size = 64638295 }
+sdist = { url = "https://files.pythonhosted.org/packages/7d/46/40ddbc079dd6e246c12e53487611069417d00717c05127eb65b8da41f2c9/gradio-5.29.0.tar.gz", hash = "sha256:56fdd8b7cb31de8e4c382677560ef8a79f4ae0c3fbb139341bce052aab728064", size = 63510023 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/3c/f3/ccf239ec058c7ebd5469952a2b265fb9002377756e1f787772b622f4bf33/gradio-5.28.0-py3-none-any.whl", hash = "sha256:f4c56bfbf6d1343728de4f6104e559ec26dbea3771efbba0cd8e4f0046e864db", size = 54067870 },
+    { url = "https://files.pythonhosted.org/packages/3e/a1/277f48516e5284ec0c511d97dc6ae4ba40899e0738d9f2687c1b97786c73/gradio-5.29.0-py3-none-any.whl", hash = "sha256:6b58321c3b2d596a701e9b1660334772a160262e4c67f18848bd54b6c0db7d89", size = 54069882 },
 ]
 
 [[package]]
@@ -1231,20 +1235,20 @@ wheels = [
 
 [[package]]
 name = "joblib"
-version = "1.4.2"
+version = "1.5.0"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/64/33/60135848598c076ce4b231e1b1895170f45fbcaeaa2c9d5e38b04db70c35/joblib-1.4.2.tar.gz", hash = "sha256:2382c5816b2636fbd20a09e0f4e9dad4736765fdfb7dca582943b9c1366b3f0e", size = 2116621 }
+sdist = { url = "https://files.pythonhosted.org/packages/30/08/8bd4a0250247861420a040b33ccf42f43c426ac91d99405374ef117e5872/joblib-1.5.0.tar.gz", hash = "sha256:d8757f955389a3dd7a23152e43bc297c2e0c2d3060056dad0feefc88a06939b5", size = 330234 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/91/29/df4b9b42f2be0b623cbd5e2140cafcaa2bef0759a00b7b70104dcfe2fb51/joblib-1.4.2-py3-none-any.whl", hash = "sha256:06d478d5674cbc267e7496a410ee875abd68e4340feff4490bcb7afb88060ae6", size = 301817 },
+    { url = "https://files.pythonhosted.org/packages/da/d3/13ee227a148af1c693654932b8b0b02ed64af5e1f7406d56b088b57574cd/joblib-1.5.0-py3-none-any.whl", hash = "sha256:206144b320246485b712fc8cc51f017de58225fa8b414a1fe1764a7231aca491", size = 307682 },
 ]
 
 [[package]]
 name = "json-repair"
-version = "0.44.0"
+version = "0.44.1"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/c7/57/1e619c9993458d856f7ca55f01ea3417ecfdcb3726fd8c94c6c962b55ea1/json_repair-0.44.0.tar.gz", hash = "sha256:732469762471e535de8aadcb4ec5a4b47e96c677d036cbc1c78ab396925c6a71", size = 32459 }
+sdist = { url = "https://files.pythonhosted.org/packages/a8/6b/ed6e92efc5acfbc9c35ccae1676b70e4adb1552421e64f838c2a3f097d9a/json_repair-0.44.1.tar.gz", hash = "sha256:1130eb9733b868dac1340b43cb2effebb519ae6d52dd2d0728c6cca517f1e0b4", size = 32886 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/63/02/c9c9f38f2a81907effc6a9d5a8a04aa27050005ec880df7859a2b4592383/json_repair-0.44.0-py3-none-any.whl", hash = "sha256:4646b59decf8763c20cd218079a12e334202d658d760ddd999f23812f07bb9cd", size = 22397 },
+    { url = "https://files.pythonhosted.org/packages/82/b4/3cbd27a3240b2962c3b87bbb1c20eb6c56e5b26cde61f141f86ca98e2f68/json_repair-0.44.1-py3-none-any.whl", hash = "sha256:51d82532c3b8263782a301eb7904c75dce5fee8c0d1aba490287fc0ab779ac50", size = 22478 },
 ]
 
 [[package]]
@@ -1328,7 +1332,7 @@ wheels = [
 
 [[package]]
 name = "litellm"
-version = "1.67.5"
+version = "1.68.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "aiohttp" },
@@ -1343,9 +1347,9 @@ dependencies = [
     { name = "tiktoken" },
     { name = "tokenizers" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/61/a4/c111de4d64b0201ed43576ebcd9114aa7473c6d9e05bb8d97c93fcf64570/litellm-1.67.5.tar.gz", hash = "sha256:a9c73feed05aba33b3f2879658f57bb3480b43404ae693ebc827f1c157affde5", size = 7276940 }
+sdist = { url = "https://files.pythonhosted.org/packages/ba/22/138545b646303ca3f4841b69613c697b9d696322a1386083bb70bcbba60b/litellm-1.68.0.tar.gz", hash = "sha256:9fb24643db84dfda339b64bafca505a2eef857477afbc6e98fb56512c24dbbfa", size = 7314051 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/99/dc/e4db6b72347446893cab8599b0a043b8883e3380ce5d86a17d4e71aaffbd/litellm-1.67.5-py3-none-any.whl", hash = "sha256:bd3329731a36200539293521d312adf4f05fc4a6312a84baff2ce5a8b1507a43", size = 7639326 },
+    { url = "https://files.pythonhosted.org/packages/10/af/1e344bc8aee41445272e677d802b774b1f8b34bdc3bb5697ba30f0fb5d52/litellm-1.68.0-py3-none-any.whl", hash = "sha256:3bca38848b1a5236b11aa6b70afa4393b60880198c939e582273f51a542d4759", size = 7684460 },
 ]
 
 [[package]]
@@ -1630,6 +1634,19 @@ wheels = [
 ]
 
 [[package]]
+name = "ollama"
+version = "0.4.8"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "httpx" },
+    { name = "pydantic" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/e2/64/709dc99030f8f46ec552f0a7da73bbdcc2da58666abfec4742ccdb2e800e/ollama-0.4.8.tar.gz", hash = "sha256:1121439d49b96fa8339842965d0616eba5deb9f8c790786cdf4c0b3df4833802", size = 12972 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/33/3f/164de150e983b3a16e8bf3d4355625e51a357e7b3b1deebe9cc1f7cb9af8/ollama-0.4.8-py3-none-any.whl", hash = "sha256:04312af2c5e72449aaebac4a2776f52ef010877c554103419d3f36066fe8af4c", size = 13325 },
+]
+
+[[package]]
 name = "onnxruntime"
 version = "1.21.1"
 source = { registry = "https://pypi.org/simple" }
@@ -1656,7 +1673,7 @@ wheels = [
 
 [[package]]
 name = "openai"
-version = "1.76.2"
+version = "1.75.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "anyio" },
@@ -1668,9 +1685,9 @@ dependencies = [
     { name = "tqdm" },
     { name = "typing-extensions" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/d5/48/e767710b07acc1fca1f6b8cacd743102c71b8fdeca603876de0749ec00f1/openai-1.76.2.tar.gz", hash = "sha256:f430c8b848775907405c6eff54621254c96f6444c593c097e0cc3a9f8fdda96f", size = 434922 }
+sdist = { url = "https://files.pythonhosted.org/packages/99/b1/318f5d4c482f19c5fcbcde190801bfaaaec23413cda0b88a29f6897448ff/openai-1.75.0.tar.gz", hash = "sha256:fb3ea907efbdb1bcfd0c44507ad9c961afd7dce3147292b54505ecfd17be8fd1", size = 429492 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/00/5f/aecb820917e93ca9fcac408e998dc22ee0561c308ed58dc8f328e3f7ef14/openai-1.76.2-py3-none-any.whl", hash = "sha256:9c1d9ad59e6e3bea7205eedc9ca66eeebae18d47b527e505a2b0d2fb1538e26e", size = 661253 },
+    { url = "https://files.pythonhosted.org/packages/80/9a/f34f163294345f123673ed03e77c33dee2534f3ac1f9d18120384457304d/openai-1.75.0-py3-none-any.whl", hash = "sha256:fe6f932d2ded3b429ff67cc9ad118c71327db32eb9d32dd723de3acfca337125", size = 646972 },
 ]
 
 [[package]]
