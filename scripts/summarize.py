@@ -3,6 +3,7 @@ import dspy
 from tqdm import tqdm
 from multiprocessing import Pool
 import traceback
+import argparse
 
 client = MongoClient("mongodb://localhost:27017/")
 
@@ -94,6 +95,13 @@ filters = {
     "ai_long_text": {"$exists": 0}
 }
 total = rsrcs.count_documents(filters)
-gen = rsrcs.find(filters)
+# Set up argument parser
+parser = argparse.ArgumentParser(description='Process resources with pagination')
+parser.add_argument('--limit', type=int, default=25000, help='Number of documents to process')
+parser.add_argument('--skip', type=int, default=0, help='Number of documents to skip')
+
+args = parser.parse_args()
+
+gen = list(rsrcs.find(filters, limit=args.limit, skip=args.skip))
 for doc in tqdm(gen):
-   add_summary(doc)
+    add_summary(doc)
