@@ -75,6 +75,15 @@ class OGDProxy:
         params["offset"] = offset
         params["limit"] = limit
         return self._make_request(url, params=params)
+
+    def resource(self, uuid: str,  offset: int = 0, limit: int = 10, format: Literal["json", "csv"]="json", params=dict()):
+        """Fetch catalog records using OGD API"""
+        url = self.api_url + f"/resource/{uuid}"
+        params["api-key"] = self.api_key
+        params["format"] = format
+        params["offset"] = offset
+        params["limit"] = limit
+        return self._make_request(url, params=params)
     
     def resources(self, offset = 0, limit = 10, params = dict()):
         """Fetch resources"""

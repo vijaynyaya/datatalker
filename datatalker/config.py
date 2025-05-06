@@ -8,4 +8,4 @@ CHROMADB_DIR = os.environ.get(
 )
 
 
-MODEL = LitellmModel("gemma3", "http://localhost:11434")
+MODEL = LitellmModel("ollama/gemma3", "http://localhost:11434")
