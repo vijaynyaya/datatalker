@@ -37,25 +37,8 @@ def chat(message: str, history: list[dict], hint: str = "", log=print) -> str:
     print("chat.reply.reasoning:", prediction.reasoning)
     return prediction.response    
 
-# generic formatter
-class MarkdownRenderer(dspy.Module):
-    def __init__(self, instructions: str, json_adapter = lambda x: x):
-        self.adapter = json_adapter
-        self.signature = dspy.Signature(
-            "json_object -> markdown",
-            instructions
-        )
-        self.renderer = dspy.ChainOfThought(self.signature)
-    
-    def forward(self, json):
-        json = self.adapter(json)
-        prediction = self.renderer(json_object=json)
-        print("markdownrenderer.renderer.reasoning", prediction.reasoning)
-        return prediction.markdown
-
 
 # resource handler
-NO_DATASETS_FOUND_MSG = "No relevant datasets found."
 def retrieve(message: str, history: list[dict], log=print):
     """
     Find relevant datasets based on a user query. Useful for locating
@@ -75,23 +58,6 @@ def retrieve(message: str, history: list[dict], log=print):
         print("retrieve.generate_query.reasoning:", prediction.reasoning)
         resources = get_relevant_resources(prediction.search_query, log=log)
 
-    def simplify_resource_document(doc):
-        """Simplifies the resource doc for optimized markdown rendition."""
-        return dict(
-            title=doc["metadatas"]["title"],
-            url=doc["metadatas"]["url"],
-            long_text_description=doc['long_text'],
-        )
-
-    md_renderer = MarkdownRenderer(
-        instructions=(
-            "Render as a list item."
-            "Start with the title as a formatted link."
-            "Followed by a crispy short passage."
-            # "End with a horizontal line."
-        ),
-        json_adapter=simplify_resource_document
-    )
     
     doc = next(resources, None)
     if doc is None:

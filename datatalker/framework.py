@@ -1,99 +1,49 @@
-from typing import List, Optional, Callable, Any
-from dataclasses import dataclass
+from typing import AsyncGenerator, Union
 
-@dataclass
-class Context:
-    """Shared context between agents"""
-    resources: dict = dict()
-    dataframes: list = list()
-    
-class Agent:
-    def __init__(
-        self, 
-        name: str,
-        handler: Callable,
-        handoffs: List['Agent'] = None,
-        instructions: str = ""
-    ):
-        self.name = name
-        self.handler = handler
-        self.handoffs = handoffs or []
-        self.instructions = instructions
-        
-    async def handle(self, message: str, history: list, context: Context) -> tuple[str, Optional['Agent']]:
-        """
-        Handle a message and return response plus next agent (if handoff needed)
-        """
-        # Execute the handler with context
-        response = await self.handler(message, history, context)
-        
-        # Determine if handoff is needed based on response/message
-        next_agent = self._determine_handoff(message, history)
-        
-        return response, next_agent
-        
-    def _determine_handoff(self, message: str, history: list) -> Optional['Agent']:
-        # Simple logic to determine if handoff is needed
-        # You can make this more sophisticated based on your needs
-        for agent in self.handoffs:
-            # Add your handoff logic here
-            # For example, based on keywords or intent
-            pass
-        return None
+from datatalker.context import set_context
+from datatalker.types import (
+    Context,
+    Message, MessageRole
+)
 
 class DataTalker:
+    """
+    DataTalker provides a natural language interface for data.
+
+    Envisioned Capabilites:
+    - Chat: General conversation and assistance
+    - Retrieval: Finding and loading datasets
+    - Data Analysis: Analyzing and visualizing data
+    - Reasoning: Explaining insights and patterns
+    - Tools: Excuting specific functions such as data transformation
+    """
     def __init__(self):
-        # Create shared context
-        self.context = Context()
-        
-        # Initialize agents
-        self.chat_agent = Agent(
-            name="chat",
-            handler=self._chat_handler,
-            instructions="Handle general chat interactions"
-        )
-        
-        self.retrieval_agent = Agent(
-            name="retrieval",
-            handler=self._retrieval_handler,
-            instructions="Handle dataset retrieval"
-        )
-        
-        self.data_agent = Agent(
-            name="data",
-            handler=self._data_handler,
-            instructions="Handle data operations"
-        )
-        
-        # Set up handoffs
-        self.chat_agent.handoffs = [self.retrieval_agent, self.data_agent]
-        self.retrieval_agent.handoffs = [self.data_agent]
-        
-        # Set current agent
-        self.current_agent = self.chat_agent
+        self.ctx = Context()
+        self.num_hops = 5
+        set_context(self.ctx)
+        # register tools and handlers
+        self.current_handler = None
+        # self.chat_handler
+        # self.reasoning_handler
+        # self.retrieval_handler
+        # self.data_handler
+        # self.viz_handler
+        # self.triage_handler
+        # self.tool_handler
 
-    async def handle_message(self, message: str, history: list) -> str:
+
+    def handle_message(self, message: str) -> Union[Message, AsyncGenerator]:
         """Main entry point for handling messages"""
-        response, next_agent = await self.current_agent.handle(
-            message, 
-            history, 
-            self.context
-        )
-        
-        if next_agent:
-            self.current_agent = next_agent
-            
-        return response
+        usr_msg = Message(role=MessageRole.USER, content=message)
+        self.ctx.add_message(usr_msg)
 
-    # Handler implementations
-    async def _chat_handler(self, message: str, history: list, context: Context):
-        # Implement chat logic
-        pass
+        for i in range(self.num_hops):
+            resp, next_handler = self.current_handler.handle()
+            yield resp
+            if next_handler is not None:
+                self.current_handler = next_handler
+            if i == (self.num_hops - 1):
+                self.current_handler = self.chat_handler
+                print("Reached hop limit. Stopping...")
 
-    async def _retrieval_handler(self, message: str, history: list, context: Context):
-        # Implement retrieval logic
-        pass
-
-    async def _data_handler(self, message: str, history: list, context: Context):
-        # Implement data handling logic
-        pass
+                
