@@ -176,10 +176,11 @@ class DataTalker:
         else:
             yield "You seemed to have reached the cutting edge! I tripped over."
 
+def build_datatalker():
+    talker = DataTalker()
+    talker.add_handler("chat", chat)
+    talker.add_handler("retrieve_datasets", retrieve)
+    talker.add_handler("fetch_data", fetch_data)
+    talker.add_handler("visualize_data", visualize)
 
-
-talker = DataTalker()
-talker.add_handler("chat", chat)
-talker.add_handler("retrieve_datasets", retrieve)
-talker.add_handler("fetch_data", fetch_data)
-talker.add_handler("visualize_data", visualize)
+talker = build_datatalker()
