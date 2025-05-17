@@ -26,8 +26,11 @@ class ResourceMetadata(TypedDict):
     title: str
     url: str
 
+ResourceType = Literal["ogd:resource", "ogd:catalog", "ckan:datastore"] 
+
 class Resource(TypedDict):
     id: str
+    interface: ResourceType
     long_text: str
     relevance_rationale: str
     metadatas: ResourceMetadata
