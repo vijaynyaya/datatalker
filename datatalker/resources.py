@@ -1,6 +1,15 @@
 from datatalker.vectorstore import get_retriever
 from dspy.retrieve.chromadb_rm import ChromadbRM
-from datatalker.types import Message, Thought, MessageRole, ResponseType, Resource
+from datatalker.types import (
+    Message,
+    Thought,
+    MessageRole,
+    ResponseType,
+    Resource,
+    SystemLog
+)
+from datatalker.renderer import ResourceRenderer
+from datatalker.context import get_context
 import dspy
 
 
@@ -65,25 +74,6 @@ def get_relevant_resources(
     return docs
 
 
-def rework_idp_resource_doc(doc) -> Resource:
-    meta = doc["metadatas"]
-    resource_page = (
-        "https://dev.indiadataportal.com"
-        f"/p/{meta['package_title']}"
-        f"/r/{meta['sku']}"
-    )
-    # TODO: add datastore info such as record count
-    return {
-        "id": meta["id"],
-        # "resource_sku": meta["sku"],
-        "title": meta["name"],
-        "long_text": doc["long_text"],
-        "relevance_rationale": doc["relevance_rationale"],
-        "webpage": resource_page,
-        # "download_url": meta["url"],
-    }
-
-
 def adapt_ogdp_catalog_doc(catalog_doc) -> Resource:
     return {
         "interface": "ogd:catalog",
@@ -93,3 +83,30 @@ def adapt_ogdp_catalog_doc(catalog_doc) -> Resource:
         "id": catalog_doc["metadatas"]["uuid"],
         "relevance_rationale": catalog_doc["relevance_rationale"],
     }
+
+def resource_handler():
+    ctx = get_context()
+    usr_msg_history = [
+        msg.content
+        for msg in ctx.history
+        if msg.role == MessageRole.USER
+    ]
+    msg = ctx.user_message.content
+
+    query_formulator = dspy.ChainOfThought(ContextualSearchQuery)
+    prediction = query_formulator(history=usr_msg_history, user_message=msg)
+    yield Thought(prediction.reasoning)
+    search_query = prediction.search_query
+    
+    rsrcs = get_relevant_resources(search_query)
+
+    doc = next(rsrcs, None)
+    if doc is None:
+        yield SystemLog(f"No relevant resources found for query '{search_query}'")
+        yield Message(MessageRole.ASSISTANT, "Couldn't find any datasets relevant to your query.")
+    
+    while doc is not None:
+        ctx.resources[doc["id"]] = doc
+        prediction = ResourceRenderer(doc)
+        yield Message(MessageRole.ASSISTANT, prediction.markdown)
+

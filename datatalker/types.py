@@ -57,6 +57,7 @@ class Message:
 
 
 Thought = lambda content: Message(role=MessageRole.THOUGHT, content=content)
+SystemLog = lambda content: Message(role=MessageRole.SYSTEM, content=content)
 
 @dataclass
 class Context:
