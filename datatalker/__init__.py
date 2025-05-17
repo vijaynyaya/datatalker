@@ -114,6 +114,17 @@ class ChooseHandler(dspy.Signature):
 
 
 class DataTalker:
+    """
+    DataTalker provides a natural language interface to data.
+
+    Envisioned Capabilites:
+    - Chat: General conversation and assistance
+    - Retrieval: Finding and loading datasets
+    - Data Analysis: Analyzing and visualizing data
+    - Reasoning: Explaining insights and patterns
+    - Tools: Excuting specific functions such as data transformation
+    """
+
     def __init__(self):
         self.HANDLERS = dict()
         self.handler_docs: list[dict] = list()
